@@ -1,7 +1,8 @@
 const std = @import("std");
+const day1 = @import("day01.zig");
+
+const print = std.debug.print;
 
 pub fn main() !void {
-
-    // Prints to stderr, ignoring potential errors.
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    print("day 1 part 1:\n{any}\n", .{day1.part1()});
 }

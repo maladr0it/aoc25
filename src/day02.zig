@@ -5,29 +5,29 @@ const std = @import("std");
 const data = @embedFile("data/day02.txt");
 
 fn sum_echo_pair_numbers(to: usize) usize {
-    // numbers made from 2 repeating sequences are just the sequence added with itself times a magnitude
+    // numbers made from 2 repeating sequences are just the base number added with itself times a magnitude
     // e.g. 1111 is 11 + 100 * 11, ie 11 * 101
     var sum: usize = 0;
-    var k: u8 = 1; // number of digits in the echoed sequence
+    var period: u8 = 1; // number of digits in the repeated (base) sequence
 
     while (true) {
-        const multiplier = std.math.pow(usize, 10, k) + 1;
+        const multiplier = std.math.pow(usize, 10, period) + 1;
 
-        const sequence_min = std.math.pow(usize, 10, k - 1);
-        const sequence_max = @min(
-            std.math.pow(usize, 10, k) - 1,
+        const base_min = std.math.pow(usize, 10, period - 1);
+        const base_max = @min(
+            std.math.pow(usize, 10, period) - 1,
             (to -| 1) / multiplier, // minus 1 since the range is exclusive
         );
 
-        if (sequence_min > sequence_max) {
+        if (base_min > base_max) {
             break;
         }
 
-        const count = sequence_max - sequence_min + 1;
-        const sequence_sum = count * (sequence_min + sequence_max) / 2;
+        const count = base_max - base_min + 1;
+        const base_sum = count * (base_min + base_max) / 2;
 
-        sum += multiplier * sequence_sum;
-        k += 1;
+        sum += multiplier * base_sum;
+        period += 1;
     }
 
     return sum;
@@ -51,7 +51,14 @@ pub fn part1() usize {
 }
 
 pub fn part2() usize {
-    const MAX_DIGITS = 16;
+    const MAX_ECHO_NUMS = 1024;
+
+    var buf: [64 * 1024]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buf);
+    const allocator = fba.allocator();
+
+    var echo_nums = std.AutoHashMap(usize, void).init(allocator);
+    echo_nums.ensureTotalCapacity(MAX_ECHO_NUMS) catch unreachable;
 
     var sum: usize = 0;
 
@@ -63,25 +70,38 @@ pub fn part2() usize {
         const start = std.fmt.parseInt(usize, start_str, 10) catch unreachable;
         const end = std.fmt.parseInt(usize, end_str, 10) catch unreachable;
 
-        var digits_buf: [MAX_DIGITS * 2]u8 = undefined;
-        digits_buf = digits_buf; // autofix
+        echo_nums.clearRetainingCapacity();
 
-        for (start..end + 1) |i| {
-            const digits = std.fmt.bufPrint(&digits_buf, "{d}", .{i}) catch unreachable;
+        var period: u8 = 1; // digits in base
+        while (true) {
+            const ten_pow_period = std.math.pow(usize, 10, period); // 10^period
+            const base_min = std.math.pow(usize, 10, period - 1);
+            const base_max = ten_pow_period - 1;
 
-            // echo isn't possible with less than 2 digits
-            if (digits.len < 2) {
-                continue;
+            if (base_min * (ten_pow_period + 1) > end) {
+                break;
             }
 
-            // repeat the digits, then remove the first and last digits
-            // if these trimmed digits still contain the original digits, it's an echo number
-            const copy_dest = digits_buf[digits.len .. digits.len * 2];
-            @memcpy(copy_dest, digits);
-            const trimmed = digits_buf[1 .. digits.len * 2 - 1];
-            if (std.mem.indexOf(u8, trimmed, digits) != null) {
-                sum += i;
+            for (base_min..base_max + 1) |base| {
+                var multiplier: usize = ten_pow_period + 1; // two repeats
+                var echo_num: usize = base * multiplier;
+
+                while (echo_num <= end) {
+                    if (echo_num >= start) {
+                        echo_nums.put(echo_num, {}) catch unreachable;
+                    }
+
+                    multiplier = multiplier * ten_pow_period + 1;
+                    echo_num = base * multiplier;
+                }
             }
+
+            period += 1;
+        }
+
+        var echo_it = echo_nums.keyIterator();
+        while (echo_it.next()) |echo_num_ptr| {
+            sum += echo_num_ptr.*;
         }
     }
 

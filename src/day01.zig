@@ -14,7 +14,7 @@ pub fn part1() usize {
     var lines = std.mem.tokenizeScalar(u8, data, '\n');
     while (lines.next()) |line| {
         const dir = line[0];
-        const num_steps = std.fmt.parseInt(i16, line[1..], 10) catch unreachable;
+        const num_steps = std.fmt.parseInt(i16, line[1..], 10).?;
 
         const delta = switch (dir) {
             'L' => -num_steps,

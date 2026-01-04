@@ -24,9 +24,11 @@ pub fn main() !void {
         print("Day 01 Part 2: {d}\n", .{day1.part2()}); // 6623
         print("Day 02 Part 1: {d}\n", .{day2.part1()}); // 31000881061
         print("Day 02 Part 2: {d}\n", .{day2.part2()}); // CLEAN THIS ONE UP 46769308485
+        print("Day 03 Part 1: {d}\n", .{day3.part1()}); // 17107
+        print("Day 03 Part 1: {d}\n", .{day3.part2()}); // 169349762274117
     }
 
-    print("Day 03 Part 1: {d}\n", .{day3.part1()}); // ?
+    
 
     stop_timer();
 }

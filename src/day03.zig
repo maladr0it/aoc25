@@ -9,7 +9,7 @@ fn get_best_joltage(bank: []const u8, num_batts: usize) usize {
     var prev_best_batt_pos: usize = 0;
 
 
-    // TODO: figure out how to assert
+    // assert
     if (num_batts > bank.len) {
         unreachable;
     }

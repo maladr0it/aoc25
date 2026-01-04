@@ -78,7 +78,8 @@ pub fn part2() usize {
             const base_min = std.math.pow(usize, 10, period - 1);
             const base_max = ten_pow_period - 1;
 
-            if (base_min * (ten_pow_period + 1) > end) {
+            const min_echo_num = base_min * (ten_pow_period + 1);
+            if (min_echo_num > end) {
                 break;
             }
 

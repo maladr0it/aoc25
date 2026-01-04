@@ -4,6 +4,7 @@ const print = std.debug.print;
 const day1 = @import("day01.zig");
 const day2 = @import("day02.zig");
 const day3 = @import("day03.zig");
+const day4 = @import("day04.zig");
 
 var timer: std.time.Timer = undefined;
 
@@ -27,6 +28,10 @@ pub fn main() !void {
         print("Day 03 Part 1: {d}\n", .{day3.part1()}); // 17107
         print("Day 03 Part 1: {d}\n", .{day3.part2()}); // 169349762274117
     }
+
+    print("Day 04 Part 1: {d}\n", .{day4.part1()}); // 17107 i think, maybe 1495
+    print("Day 04 Part 2: {d}\n", .{day4.part2()}); // ??
+
 
     
 

@@ -38,8 +38,9 @@ pub fn main() !void {
         print("Day 06 Part 2: {d}\n", .{day6.part2()}); // ? 11159825706149
     }
 
-    print("Day 07 Part 1: {d}\n", .{day7.part1()}); // 1539
-    print("Day 07 Part 2: {d}\n", .{day7.part2()}); // ?
+    print("Day 05 Part 2: {d}\n", .{day5.part2()}); // ? 322211098737036
+    // print("Day 07 Part 1: {d}\n", .{day7.part1()}); // 1539
+    // print("Day 07 Part 2: {d}\n", .{day7.part2()}); // ?
 
     stop_timer();
 }

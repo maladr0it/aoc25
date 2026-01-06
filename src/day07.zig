@@ -35,6 +35,7 @@ pub fn part1() usize {
                     '.' => {
                         grid.set(col, row, '|');
                     },
+                    // the beam splits
                     '^' => {
                         split_count += 1;
                         if (grid.getSafe(col - 1, row) == '.') {

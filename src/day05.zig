@@ -73,7 +73,7 @@ pub fn part2() usize {
             total_span += (cur_range_end - cur_range_start);
             cur_range_start = range[0];
         }
-        cur_range_end = range[1] + 1; // add one since ranges are inclusive
+        cur_range_end = @max(range[1] + 1, cur_range_end); // add one since provided ranges are inclusive
     }
 
     // end the final range

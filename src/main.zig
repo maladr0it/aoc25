@@ -7,6 +7,7 @@ const day3 = @import("day03.zig");
 const day4 = @import("day04.zig");
 const day5 = @import("day05.zig");
 const day6 = @import("day06.zig");
+const day7 = @import("day07.zig");
 
 var timer: std.time.Timer = undefined;
 
@@ -15,14 +16,14 @@ pub fn start_timer() void {
 }
 
 pub fn stop_timer() void {
-    const elapsed = timer.lap();
+    const elapsed = timer.read();
     const ms = @as(f64, @floatFromInt(elapsed)) / 1_000_000.0;
     std.debug.print("elapsed: ({d:.3}ms)\n", .{ms});
 }
 
 pub fn main() !void {
     start_timer();
-    if (true) {
+    if (false) {
         print("Day 01 Part 1: {d}\n", .{day1.part1()}); // 1132
         print("Day 01 Part 2: {d}\n", .{day1.part2()}); // 6623
         print("Day 02 Part 1: {d}\n", .{day2.part1()}); // 31000881061
@@ -36,6 +37,9 @@ pub fn main() !void {
         print("Day 06 Part 1: {d}\n", .{day6.part1()}); // 5877594983578
         print("Day 06 Part 2: {d}\n", .{day6.part2()}); // ? 11159825706149
     }
+
+    print("Day 07 Part 1: {d}\n", .{day7.part1()}); // 1539
+    print("Day 07 Part 2: {d}\n", .{day7.part2()}); // ?
 
     stop_timer();
 }

@@ -64,7 +64,7 @@ pub fn part2() usize {
     }.lessThan);
 
     var cur_range_start: usize = 0;
-    var cur_range_end: usize = 0;
+    var cur_range_end: usize = 0; // exclusive
     var total_span: usize = 0;
 
     for (ranges.items) |range| {

@@ -22,7 +22,7 @@ pub fn stop_timer() void {
 
 pub fn main() !void {
     start_timer();
-    if (false) {
+    if (true) {
         print("Day 01 Part 1: {d}\n", .{day1.part1()}); // 1132
         print("Day 01 Part 2: {d}\n", .{day1.part2()}); // 6623
         print("Day 02 Part 1: {d}\n", .{day2.part1()}); // 31000881061
@@ -31,13 +31,11 @@ pub fn main() !void {
         print("Day 03 Part 1: {d}\n", .{day3.part2()}); // 169349762274117
         print("Day 04 Part 1: {d}\n", .{day4.part1()}); // 1495
         print("Day 04 Part 2: {d}\n", .{day4.part2()}); // 8768 - a bit slow
+        print("Day 05 Part 1: {d}\n", .{day5.part1()}); // 758
+        print("Day 05 Part 2: {d}\n", .{day5.part2()}); // ? 322211098737036
+        print("Day 06 Part 1: {d}\n", .{day6.part1()}); // 5877594983578
+        print("Day 06 Part 2: {d}\n", .{day6.part2()}); // ? 11159825706149
     }
-
-    print("Day 05 Part 1: {d}\n", .{day5.part1()}); // 758
-    print("Day 05 Part 2: {d}\n", .{day5.part2()}); // ?
-
-    // print("Day 06 Part 1: {d}\n", .{day6.part1()}); // 5877594983578
-    // print("Day 06 Part 2: {d}\n", .{day6.part2()}); // ? 322211098737036
 
     stop_timer();
 }

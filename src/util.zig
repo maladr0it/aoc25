@@ -125,10 +125,6 @@ pub const Grid = struct {
     }
 
     pub fn getIndex(self: *Grid, x: i32, y: i32) usize {
-        if (!self.checkBounds(x, y)) {
-            std.debug.print("\nOOB {d},{d}\n", .{ x, y });
-        }
-
         const index = @as(usize, @intCast(y)) * @as(usize, @intCast(self.width)) + @as(usize, @intCast(x));
         return index;
     }

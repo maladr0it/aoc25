@@ -102,30 +102,55 @@ pub const Grid = struct {
         self.allocator.free(self.data);
     }
 
-    pub fn get(self: *Grid, x: i32, y: i32) ?u8 {
-        if (x >= 0 and x < self.width and y >= 0 and y < self.height) {
-            const idx = @as(usize, @intCast(y)) * @as(usize, @intCast(self.width)) + @as(usize, @intCast(x));
-            return self.data[idx];
+    pub fn checkBounds(self: *Grid, x: i32, y: i32) bool {
+        return (x >= 0 and x < self.width and y >= 0 and y < self.height);
+    }
+
+    pub fn get(self: *Grid, x: i32, y: i32) u8 {
+        const idx = self.getIndex(x, y);
+        return self.data[idx];
+    }
+
+    pub fn set(self: *Grid, x: i32, y: i32, value: u8) void {
+        const idx = self.getIndex(x, y);
+        self.data[idx] = value;
+    }
+
+    // gets while checking bounds
+    pub fn getSafe(self: *Grid, x: i32, y: i32) ?u8 {
+        if (self.checkBounds(x, y)) {
+            return self.get(x, y);
         }
         return null;
     }
 
-    pub fn set(self: *Grid, x: i32, y: i32, value: u8) void {
-        if (x >= 0 and x < self.width and y >= 0 and y < self.height) {
-            const idx = @as(usize, @intCast(y)) * @as(usize, @intCast(self.width)) + @as(usize, @intCast(x));
-            self.data[idx] = value;
+    pub fn getIndex(self: *Grid, x: i32, y: i32) usize {
+        if (!self.checkBounds(x, y)) {
+            std.debug.print("\nOOB {d},{d}\n", .{ x, y });
         }
+
+        const index = @as(usize, @intCast(y)) * @as(usize, @intCast(self.width)) + @as(usize, @intCast(x));
+        return index;
+    }
+
+    // sets while checking bounds
+    pub fn setSafe(self: *Grid, x: i32, y: i32, value: u8) bool {
+        if (self.checkBounds(x, y)) {
+            self.set(x, y, value);
+            return true;
+        }
+        return false;
     }
 
     pub fn coords(self: *Grid) I32Iterator2D {
         return I32Iterator2D{ .value = .{ 0, 0 }, .to = .{ self.width, self.height } };
     }
 
-    pub fn row_coords(self: *Grid) I32Iterator {
+    pub fn rowCoords(self: *Grid) I32Iterator {
         return I32Iterator{ .value = 0, .to = self.height };
     }
 
-    pub fn col_coords(self: *Grid) I32Iterator {
+    pub fn colCoords(self: *Grid) I32Iterator {
         return I32Iterator{ .value = 0, .to = self.width };
     }
 

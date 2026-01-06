@@ -30,7 +30,7 @@ pub fn part1() usize {
 
         var adj_roll_count: u8 = 0;
         for (ADJ_OFFSETS) |offset| {
-            if (grid.get(x + offset[0], y + offset[1])) |val| {
+            if (grid.getSafe(x + offset[0], y + offset[1])) |val| {
                 if (val == '@') {
                     adj_roll_count += 1;
                 }
@@ -64,7 +64,7 @@ pub fn part2() usize {
 
             var adj_roll_count: u8 = 0;
             for (ADJ_OFFSETS) |offset| {
-                if (grid.get(x + offset[0], y + offset[1])) |val| {
+                if (grid.getSafe(x + offset[0], y + offset[1])) |val| {
                     if (val == '@') {
                         adj_roll_count += 1;
                     }

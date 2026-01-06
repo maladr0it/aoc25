@@ -5,6 +5,8 @@ const day1 = @import("day01.zig");
 const day2 = @import("day02.zig");
 const day3 = @import("day03.zig");
 const day4 = @import("day04.zig");
+const day5 = @import("day05.zig");
+const day6 = @import("day06.zig");
 
 var timer: std.time.Timer = undefined;
 
@@ -20,17 +22,22 @@ pub fn stop_timer() void {
 
 pub fn main() !void {
     start_timer();
-    if (true) {
+    if (false) {
         print("Day 01 Part 1: {d}\n", .{day1.part1()}); // 1132
         print("Day 01 Part 2: {d}\n", .{day1.part2()}); // 6623
         print("Day 02 Part 1: {d}\n", .{day2.part1()}); // 31000881061
         print("Day 02 Part 2: {d}\n", .{day2.part2()}); // CLEAN THIS ONE UP 46769308485
         print("Day 03 Part 1: {d}\n", .{day3.part1()}); // 17107
         print("Day 03 Part 1: {d}\n", .{day3.part2()}); // 169349762274117
-
+        print("Day 04 Part 1: {d}\n", .{day4.part1()}); // 1495
+        print("Day 04 Part 2: {d}\n", .{day4.part2()}); // 8768
     }
-    print("Day 04 Part 1: {d}\n", .{day4.part1()}); // 1495
-    print("Day 04 Part 2: {d}\n", .{day4.part2()}); // 8768
+
+    print("Day 05 Part 1: {d}\n", .{day5.part1()}); // ? 758
+    print("Day 05 Part 2: {d}\n", .{day5.part2()}); // ?
+
+    print("Day 06 Part 1: {d}\n", .{day6.part1()}); // 5877594983578
+    print("Day 06 Part 2: {d}\n", .{day6.part2()}); // ?
 
     stop_timer();
 }

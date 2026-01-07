@@ -1,3 +1,5 @@
+// https://adventofcode.com/2025/day/5
+
 const std = @import("std");
 
 const data = @embedFile("data/day05.txt");

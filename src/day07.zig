@@ -1,3 +1,5 @@
+// https://adventofcode.com/2025/day/7
+
 const std = @import("std");
 
 const util = @import("util.zig");

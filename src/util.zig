@@ -118,7 +118,7 @@ pub fn Grid(comptime T: type) type {
         }
 
         pub fn getIndex(self: *Self, x: i32, y: i32) usize {
-            return @as(usize, @intCast(y)) * @as(usize, self.width) + @as(usize, @intCast(x));
+            return @as(usize, @intCast(y)) * self.width + @as(usize, @intCast(x));
         }
 
         pub fn setSafe(self: *Self, x: i32, y: i32, value: T) bool {
@@ -145,8 +145,8 @@ pub fn Grid(comptime T: type) type {
             comptime if (T != u8) @compileError("print only works with Grid(u8)");
 
             for (0..self.height) |row| {
-                const start = row * @as(usize, @intCast(self.width));
-                const end = start + @as(usize, @intCast(self.width));
+                const start = row * self.width;
+                const end = start + self.width;
                 std.debug.print("{s}\n", .{self.data[start..end]});
             }
         }

@@ -23,7 +23,7 @@ pub fn stop_timer() void {
 
 pub fn main() !void {
     start_timer();
-    if (false) {
+    if (true) {
         print("Day 01 Part 1: {d}\n", .{day1.part1()}); // 1132
         print("Day 01 Part 2: {d}\n", .{day1.part2()}); // 6623
         print("Day 02 Part 1: {d}\n", .{day2.part1()}); // 31000881061

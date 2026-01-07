@@ -50,7 +50,6 @@ pub fn part1() usize {
             }
         }
     }
-    // grid.print();
 
     return split_count;
 }

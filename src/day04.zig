@@ -16,7 +16,7 @@ const ADJ_OFFSETS = [_][2]i32{
 };
 
 pub fn part1() usize {
-    var grid = util.Grid.initFromData(std.heap.page_allocator, data) catch unreachable;
+    var grid = util.Grid(u8).initFromData(std.heap.page_allocator, data) catch unreachable;
     var result: usize = 0;
 
     var coords_it = grid.coords();
@@ -46,7 +46,7 @@ pub fn part1() usize {
 }
 
 pub fn part2() usize {
-    var grid = util.Grid.initFromData(std.heap.page_allocator, data) catch unreachable;
+    var grid = util.Grid(u8).initFromData(std.heap.page_allocator, data) catch unreachable;
 
     var result: usize = 0;
 

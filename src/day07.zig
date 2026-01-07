@@ -9,7 +9,7 @@ pub fn part1() usize {
     var fba = std.heap.FixedBufferAllocator.init(&buf);
     const allocator = fba.allocator();
 
-    var grid = util.Grid.initFromData(allocator, data) catch unreachable;
+    var grid = util.Grid(u8).initFromData(allocator, data) catch unreachable;
     defer grid.deinit();
 
     const start = blk: {
@@ -55,6 +55,57 @@ pub fn part1() usize {
     return split_count;
 }
 
+fn countTimelines(grid: *util.Grid(u8), timeline_counts: *util.Grid(usize), x: i32, y: i32) usize {
+    // timeline ends once the beam goes out of bounds
+    if (!grid.checkBounds(x, y)) {
+        return 1;
+    }
+
+    // we already calculated the number of timelines from this cell, return the cached value
+    // a timeline count of 0 means we haven't calculated it yet
+    if (timeline_counts.get(x, y) != 0) {
+        return timeline_counts.get(x, y);
+    }
+
+    switch (grid.get(x, y)) {
+        '.', 'S' => {
+            // beam travels downward
+            const count = countTimelines(grid, timeline_counts, x, y + 1);
+            timeline_counts.set(x, y, count);
+            return count;
+        },
+        '^' => {
+            // beam travels left in one timeline, right in another
+            const count = countTimelines(grid, timeline_counts, x - 1, y) + countTimelines(grid, timeline_counts, x + 1, y);
+            timeline_counts.set(x, y, count);
+            return count;
+        },
+        else => unreachable,
+    }
+}
+
 pub fn part2() usize {
-    return 0;
+    var buf: [256 * 1024]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buf);
+    const allocator = fba.allocator();
+
+    var grid = util.Grid(u8).initFromData(allocator, data) catch unreachable;
+    defer grid.deinit();
+
+    var timeline_counts = util.Grid(usize).initFill(allocator, grid.width, grid.height, 0) catch unreachable;
+    defer timeline_counts.deinit();
+
+    const start = blk: {
+        var coord_it = grid.coords();
+        while (coord_it.next()) |coord| {
+            if (grid.get(coord[0], coord[1]) == 'S') {
+                break :blk coord;
+            }
+        }
+        unreachable; // start should exist
+    };
+
+    const result = countTimelines(&grid, &timeline_counts, start[0], start[1]);
+
+    return result;
 }

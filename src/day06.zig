@@ -4,7 +4,7 @@ const util = @import("util.zig");
 
 const data = @embedFile("data/day06.txt");
 
-fn isGap(grid: *util.Grid, col: i32) bool {
+fn isGap(grid: *util.Grid(u8), col: i32) bool {
     var row_it = grid.rowCoords();
     while (row_it.next()) |row| {
         if (grid.get(col, row) != ' ') {
@@ -19,7 +19,7 @@ pub fn part1() usize {
     var fba = std.heap.FixedBufferAllocator.init(&buf);
     const allocator = fba.allocator();
 
-    var grid = util.Grid.initFromData(allocator, data) catch unreachable;
+    var grid = util.Grid(u8).initFromData(allocator, data) catch unreachable;
     defer grid.deinit();
 
     var result: usize = 0;
@@ -68,7 +68,7 @@ pub fn part2() usize {
     var fba = std.heap.FixedBufferAllocator.init(&buf);
     const allocator = fba.allocator();
 
-    var grid = util.Grid.initFromData(allocator, data) catch unreachable;
+    var grid = util.Grid(u8).initFromData(allocator, data) catch unreachable;
     defer grid.deinit();
 
     var result: usize = 0;

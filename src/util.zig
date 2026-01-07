@@ -47,114 +47,108 @@ const I32Iterator2D = struct {
     }
 };
 
-pub const Grid = struct {
-    // all i32 must be valid so we use i32 for dimensions
-    height: u31,
-    width: u31,
-    allocator: std.mem.Allocator,
-    data: []u8,
+pub fn Grid(comptime T: type) type {
+    return struct {
+        const Self = @This();
 
-    pub fn initFill(allocator: std.mem.Allocator, width: usize, height: usize, value: u8) !Grid {
-        const self = Grid{
-            .height = @intCast(height),
-            .width = @intCast(width),
-            .allocator = allocator,
-            .data = try allocator.alloc(u8, width * height),
-        };
+        height: u31,
+        width: u31,
+        allocator: std.mem.Allocator,
+        data: []T,
 
-        @memset(self.data, value);
-
-        return self;
-    }
-
-    pub fn initFromData(allocator: std.mem.Allocator, data_in: []const u8) !Grid {
-        // first pass: determine dimensions
-        var width: usize = 0;
-        var height: usize = 0;
-        var lines = std.mem.tokenizeScalar(u8, data_in, '\n');
-        while (lines.next()) |line| {
-            width = line.len;
-            height += 1;
+        pub fn initFill(allocator: std.mem.Allocator, width: usize, height: usize, value: T) !Self {
+            const self = Self{
+                .height = @intCast(height),
+                .width = @intCast(width),
+                .allocator = allocator,
+                .data = try allocator.alloc(T, width * height),
+            };
+            @memset(self.data, value);
+            return self;
         }
 
-        var self = Grid{
-            .height = @intCast(height),
-            .width = @intCast(width),
-            .allocator = allocator,
-            .data = try allocator.alloc(u8, width * height),
-        };
+        pub fn initFromData(allocator: std.mem.Allocator, data_in: []const u8) !Self {
+            comptime if (T != u8) @compileError("initFromData only works with Grid(u8)");
 
-        @memset(self.data, 0);
+            var width: usize = 0;
+            var height: usize = 0;
+            var lines = std.mem.tokenizeScalar(u8, data_in, '\n');
+            while (lines.next()) |line| {
+                width = line.len;
+                height += 1;
+            }
 
-        // second pass: copy each row into flat storage
-        var lines2 = std.mem.tokenizeScalar(u8, data_in, '\n');
-        var row: usize = 0;
-        while (lines2.next()) |line| {
-            const start = row * width;
-            std.mem.copyForwards(u8, self.data[start .. start + line.len], line);
-            row += 1;
+            var self = Self{
+                .height = @intCast(height),
+                .width = @intCast(width),
+                .allocator = allocator,
+                .data = try allocator.alloc(T, width * height),
+            };
+
+            lines.reset();
+            var row: usize = 0;
+            while (lines.next()) |line| {
+                const start = row * width;
+                std.mem.copyForwards(u8, self.data[start .. start + line.len], line);
+                row += 1;
+            }
+
+            return self;
         }
 
-        return self;
-    }
-
-    pub fn deinit(self: *Grid) void {
-        self.allocator.free(self.data);
-    }
-
-    pub fn checkBounds(self: *Grid, x: i32, y: i32) bool {
-        return (x >= 0 and x < self.width and y >= 0 and y < self.height);
-    }
-
-    pub fn get(self: *Grid, x: i32, y: i32) u8 {
-        const idx = self.getIndex(x, y);
-        return self.data[idx];
-    }
-
-    pub fn set(self: *Grid, x: i32, y: i32, value: u8) void {
-        const idx = self.getIndex(x, y);
-        self.data[idx] = value;
-    }
-
-    // gets while checking bounds
-    pub fn getSafe(self: *Grid, x: i32, y: i32) ?u8 {
-        if (self.checkBounds(x, y)) {
-            return self.get(x, y);
+        pub fn deinit(self: *Self) void {
+            self.allocator.free(self.data);
         }
-        return null;
-    }
 
-    pub fn getIndex(self: *Grid, x: i32, y: i32) usize {
-        const index = @as(usize, @intCast(y)) * @as(usize, @intCast(self.width)) + @as(usize, @intCast(x));
-        return index;
-    }
-
-    // sets while checking bounds
-    pub fn setSafe(self: *Grid, x: i32, y: i32, value: u8) bool {
-        if (self.checkBounds(x, y)) {
-            self.set(x, y, value);
-            return true;
+        pub fn checkBounds(self: *Self, x: i32, y: i32) bool {
+            return (x >= 0 and x < self.width and y >= 0 and y < self.height);
         }
-        return false;
-    }
 
-    pub fn coords(self: *Grid) I32Iterator2D {
-        return I32Iterator2D{ .value = .{ 0, 0 }, .to = .{ self.width, self.height } };
-    }
-
-    pub fn rowCoords(self: *Grid) I32Iterator {
-        return I32Iterator{ .value = 0, .to = self.height };
-    }
-
-    pub fn colCoords(self: *Grid) I32Iterator {
-        return I32Iterator{ .value = 0, .to = self.width };
-    }
-
-    pub fn print(self: *Grid) void {
-        for (0..self.height) |row| {
-            const start = row * @as(usize, @intCast(self.width));
-            const end = start + @as(usize, @intCast(self.width));
-            std.debug.print("{s}\n", .{self.data[start..end]});
+        pub fn get(self: *Self, x: i32, y: i32) T {
+            return self.data[self.getIndex(x, y)];
         }
-    }
-};
+
+        pub fn set(self: *Self, x: i32, y: i32, value: T) void {
+            self.data[self.getIndex(x, y)] = value;
+        }
+
+        pub fn getSafe(self: *Self, x: i32, y: i32) ?T {
+            if (self.checkBounds(x, y)) return self.get(x, y);
+            return null;
+        }
+
+        pub fn getIndex(self: *Self, x: i32, y: i32) usize {
+            return @as(usize, @intCast(y)) * @as(usize, self.width) + @as(usize, @intCast(x));
+        }
+
+        pub fn setSafe(self: *Self, x: i32, y: i32, value: T) bool {
+            if (self.checkBounds(x, y)) {
+                self.set(x, y, value);
+                return true;
+            }
+            return false;
+        }
+
+        pub fn coords(self: *Self) I32Iterator2D {
+            return I32Iterator2D{ .value = .{ 0, 0 }, .to = .{ self.width, self.height } };
+        }
+
+        pub fn rowCoords(self: *Self) I32Iterator {
+            return I32Iterator{ .value = 0, .to = self.height };
+        }
+
+        pub fn colCoords(self: *Self) I32Iterator {
+            return I32Iterator{ .value = 0, .to = self.width };
+        }
+
+        pub fn print(self: *Self) void {
+            comptime if (T != u8) @compileError("print only works with Grid(u8)");
+
+            for (0..self.height) |row| {
+                const start = row * @as(usize, @intCast(self.width));
+                const end = start + @as(usize, @intCast(self.width));
+                std.debug.print("{s}\n", .{self.data[start..end]});
+            }
+        }
+    };
+}

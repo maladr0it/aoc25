@@ -9,6 +9,7 @@ const day5 = @import("day05.zig");
 const day6 = @import("day06.zig");
 const day7 = @import("day07.zig");
 const day8 = @import("day08.zig");
+const day9 = @import("day09.zig");
 
 var timer: std.time.Timer = undefined;
 
@@ -39,10 +40,12 @@ pub fn main() !void {
         print("Day 06 Part 2: {d}\n", .{day6.part2()}); // 11159825706149
         print("Day 07 Part 1: {d}\n", .{day7.part1()}); // 1539
         print("Day 07 Part 2: {d}\n", .{day7.part2()}); // 6479180385864
+        print("Day 08 Part 1: {d}\n", .{day8.part1()}); // 47040
+        print("Day 08 Part 2: {d}\n", .{day8.part2()}); // 4884971896
     }
 
-    print("Day 08 Part 1: {d}\n", .{day8.part1()}); // 47040
-    print("Day 08 Part 2: {d}\n", .{day8.part2()}); // ?
+    print("Day 09 Part 1: {d}\n", .{day9.part1()}); // ?
+    print("Day 09 Part 2: {d}\n", .{day9.part2()}); // ?
 
     stop_timer();
 }

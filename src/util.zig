@@ -96,6 +96,26 @@ pub fn Grid(comptime T: type) type {
             return self;
         }
 
+        pub fn floodFill(self: *Self, x: i32, y: i32, target: T, value: T) !void {
+            const perimeter = self.width * 2 + self.height * 2; // decent heuristic for the frontier size
+            var queue = try std.ArrayList([2]i32).initCapacity(self.allocator, perimeter);
+            defer queue.deinit(self.allocator);
+            try queue.append(self.allocator, .{ x, y });
+
+            while (queue.pop()) |coord| {
+                if (self.getSafe(coord[0], coord[1]) != target) {
+                    continue;
+                }
+
+                self.set(coord[0], coord[1], value);
+
+                try queue.append(self.allocator, .{ coord[0] - 1, coord[1] });
+                try queue.append(self.allocator, .{ coord[0] + 1, coord[1] });
+                try queue.append(self.allocator, .{ coord[0], coord[1] - 1 });
+                try queue.append(self.allocator, .{ coord[0], coord[1] + 1 });
+            }
+        }
+
         pub fn deinit(self: *Self) void {
             self.allocator.free(self.data);
         }

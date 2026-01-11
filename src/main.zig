@@ -44,7 +44,7 @@ pub fn main() !void {
         print("Day 08 Part 2: {d}\n", .{day8.part2()}); // 4884971896
     }
 
-    print("Day 09 Part 1: {d}\n", .{day9.part1()}); // ?
+    print("Day 09 Part 1: {d}\n", .{day9.part1()}); // 4782151432
     print("Day 09 Part 2: {d}\n", .{day9.part2()}); // ?
 
     stop_timer();

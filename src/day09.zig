@@ -4,10 +4,10 @@ const std = @import("std");
 
 const util = @import("util.zig");
 
-const data = @embedFile("data/x.txt");
-// const data = @embedFile("data/day09.txt");
+const data = @embedFile("data/day09.txt");
 
 const MAX_POINTS = 512;
+const MAX_PAIRS = (MAX_POINTS * (MAX_POINTS - 1)) / 2;
 
 pub fn part1() u64 {
     var buf: [MAX_POINTS][2]i64 = undefined;
@@ -29,7 +29,7 @@ pub fn part1() u64 {
         const p1 = points.items[i];
         for (i + 1..points.items.len) |j| {
             const p2 = points.items[j];
-            const area = @abs((p1[0] - p2[0] + 1) * (p1[1] - p2[1] + 1));
+            const area = (@abs(p1[0] - p2[0]) + 1) * (@abs(p1[1] - p2[1]) + 1);
             max_area = @max(area, max_area);
         }
     }
@@ -132,9 +132,8 @@ pub fn part2() usize {
         const dx = std.math.sign(x2 - x1);
         const dy = std.math.sign(y2 - y1);
 
-        grid.set(x1, y1, '#');
-        var x = x1 + dx;
-        var y = y1 + dy;
+        var x = x1;
+        var y = y1;
         while (x != x2 or y != y2) {
             grid.set(x, y, 'X');
             x += dx;
@@ -142,32 +141,65 @@ pub fn part2() usize {
         }
     }
 
-    grid.print();
-
     grid.floodFill(0, 0, '.', '!') catch unreachable;
 
-    grid.print();
+    const Rect = struct {
+        p1: [2]i32,
+        p2: [2]i32,
+        area: usize,
+    };
 
-    // later: use a heap and just store the ~100 biggest
+    var rects = std.ArrayList(Rect).initCapacity(allocator, MAX_PAIRS) catch unreachable;
+    defer rects.deinit(allocator);
 
     for (0..points.items.len) |i| {
         const p1 = points.items[i];
-        _ = p1; // autofix
-        for (i..points.items.len) |j| {
-            const p2 = points.items[j];
-            _ = p2; // autofix
+        const p1_condensed = [2]i32{
+            x_map.get(p1[0]) orelse unreachable,
+            y_map.get(p1[1]) orelse unreachable,
+        };
 
+        for (i + 1..points.items.len) |j| {
+            const p2 = points.items[j];
+            const p2_condensed = [2]i32{
+                x_map.get(p2[0]) orelse unreachable,
+                y_map.get(p2[1]) orelse unreachable,
+            };
+            const area = (@abs(p1[0] - p2[0]) + 1) * (@abs(p1[1] - p2[1]) + 1);
+
+            rects.appendAssumeCapacity(.{ .p1 = p1_condensed, .p2 = p2_condensed, .area = area });
         }
     }
 
-    var pairs = std.ArrayList(); // HERE
-    _ = pairs; // autofix
+    std.mem.sort(Rect, rects.items, {}, struct {
+        fn lessThan(context: void, a: Rect, b: Rect) bool {
+            _ = context;
+            return a.area > b.area;
+        }
+    }.lessThan);
 
-    // okay now check every rectangle, from the largest and see if we have a fit
+    for (rects.items) |rect| {
+        const x_min = @min(rect.p1[0], rect.p2[0]);
+        const x_max = @max(rect.p1[0], rect.p2[0]);
+        const y_min = @min(rect.p1[1], rect.p2[1]);
+        const y_max = @max(rect.p1[1], rect.p2[1]);
 
-    // for (points.items) |point| {
-    //     grid.set(x_map.get(point[0]), y_map.get(point[1]), '#');
-    // }
+        var is_contained = true;
+        var x = x_min;
+        outer: while (x <= x_max) : (x += 1) {
+            var y = y_min;
+            while (y <= y_max) : (y += 1) {
+                if (grid.get(x, y) == '!') {
+                    is_contained = false;
+                    break :outer;
+                }
+            }
+        }
 
-    return 0;
+        if (is_contained) {
+            return rect.area;
+        }
+    }
+
+    return 0; // should be unreachable
 }

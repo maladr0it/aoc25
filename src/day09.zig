@@ -201,5 +201,5 @@ pub fn part2() usize {
         }
     }
 
-    return 0; // should be unreachable
+    unreachable;
 }

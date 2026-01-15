@@ -2,6 +2,7 @@ const std = @import("std");
 const print = std.debug.print;
 
 const day1 = @import("day01.zig");
+const day10 = @import("day10.zig");
 const day2 = @import("day02.zig");
 const day3 = @import("day03.zig");
 const day4 = @import("day04.zig");
@@ -42,10 +43,12 @@ pub fn main() !void {
         print("Day 07 Part 2: {d}\n", .{day7.part2()}); // 6479180385864
         print("Day 08 Part 1: {d}\n", .{day8.part1()}); // 47040
         print("Day 08 Part 2: {d}\n", .{day8.part2()}); // 4884971896
+        print("Day 09 Part 1: {d}\n", .{day9.part1()}); // 4782151432
+        print("Day 09 Part 2: {d}\n", .{day9.part2()}); // 1450414119 - pretty slow try different approach
     }
 
-    print("Day 09 Part 1: {d}\n", .{day9.part1()}); // 4782151432
-    print("Day 09 Part 2: {d}\n", .{day9.part2()}); // ?
+    print("Day 10 Part 1: {d}\n", .{day10.part1()}); // ?
+    print("Day 10 Part 2: {d}\n", .{day10.part2()}); // ?
 
     stop_timer();
 }

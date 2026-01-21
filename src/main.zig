@@ -45,10 +45,10 @@ pub fn main() !void {
         print("Day 08 Part 2: {d}\n", .{day8.part2()}); // 4884971896
         print("Day 09 Part 1: {d}\n", .{day9.part1()}); // 4782151432
         print("Day 09 Part 2: {d}\n", .{day9.part2()}); // 1450414119 - pretty slow try different approach
+        print("Day 10 Part 1: {d}\n", .{day10.part1()}); // 488
     }
 
-    print("Day 10 Part 1: {d}\n", .{day10.part1()}); // ?
-    print("Day 10 Part 2: {d}\n", .{day10.part2()}); // ?
+    print("Day 10 Part 2: {d}\n", .{day10.part2()}); // 18771
 
     stop_timer();
 }

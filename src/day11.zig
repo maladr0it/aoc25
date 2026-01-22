@@ -85,6 +85,8 @@ pub fn part1() u64 {
 pub fn part2() u64 {
     const START_NODE_NAME = "svr";
     const END_NODE_NAME = "out";
+    const DAC_NODE_NAME = "dac";
+    const FFT_NODE_NAME = "fft";
 
     const SEEN_DAC = 1 << 0;
     const SEEN_FFT = 1 << 1;
@@ -128,10 +130,10 @@ pub fn part2() u64 {
             }
 
             var next_visit_state = visit_state;
-            if (std.mem.eql(u8, node, "dac")) {
+            if (std.mem.eql(u8, node, DAC_NODE_NAME)) {
                 next_visit_state |= SEEN_DAC;
             }
-            if (std.mem.eql(u8, node, "fft")) {
+            if (std.mem.eql(u8, node, FFT_NODE_NAME)) {
                 next_visit_state |= SEEN_FFT;
             }
 
@@ -172,10 +174,7 @@ pub fn part2() u64 {
     defer memo.deinit();
     memo.ensureTotalCapacity(MAX_NODES) catch unreachable;
 
-    var ctx = Ctx{
-        .adj_map = &adj_map,
-        .memo = &memo,
-    };
+    var ctx = Ctx{ .adj_map = &adj_map, .memo = &memo };
     const result = ctx.dfs(START_NODE_NAME, 0);
 
     return result;

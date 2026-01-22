@@ -4,7 +4,6 @@ const std = @import("std");
 
 const util = @import("util.zig");
 
-// const data = @embedFile("data/xx.txt");
 const data = @embedFile("data/day10.txt");
 
 const MAX_ROWS = 16;
@@ -277,7 +276,7 @@ pub fn part2() u64 {
                     odd_presses[pivot_col] = val;
                 }
 
-                var next_targets: Targets = .{0} ** MAX_ROWS;
+                var next_targets: Targets = undefined;
                 var ok = true;
                 for (0..self.num_rows) |r| {
                     var pressed_once_effect: i64 = 0;

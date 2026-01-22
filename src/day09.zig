@@ -38,7 +38,12 @@ pub fn part1() u64 {
 }
 
 pub fn part2() usize {
-    const allocator = std.heap.page_allocator;
+    const HEAP_BUF_SIZE = 4 * 1024 * 1024;
+    const heap_buf = std.heap.page_allocator.alloc(u8, HEAP_BUF_SIZE) catch unreachable;
+    defer std.heap.page_allocator.free(heap_buf);
+
+    var fba = std.heap.FixedBufferAllocator.init(heap_buf);
+    const allocator = fba.allocator();
 
     var points = std.ArrayList([2]i64).initCapacity(allocator, MAX_POINTS) catch unreachable;
 
@@ -119,7 +124,6 @@ pub fn part2() usize {
         @intCast(compressed_y + 2),
         '.',
     ) catch unreachable;
-    defer grid.deinit();
 
     // draw the map
     for (0..points.items.len) |i| {
@@ -150,7 +154,6 @@ pub fn part2() usize {
     };
 
     var rects = std.ArrayList(Rect).initCapacity(allocator, MAX_PAIRS) catch unreachable;
-    defer rects.deinit(allocator);
 
     for (0..points.items.len) |i| {
         const p1 = points.items[i];

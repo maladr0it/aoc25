@@ -45,13 +45,11 @@ pub fn part1() u64 {
         }
     };
 
-    const buf = std.heap.page_allocator.alloc(u8, 256 * 1024) catch unreachable;
-    defer std.heap.page_allocator.free(buf);
-    var fba = std.heap.FixedBufferAllocator.init(buf);
+    var buf: [256 * 1024]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buf);
     const allocator = fba.allocator();
 
     var adj_map = AdjMap.init(allocator);
-    defer adj_map.deinit();
     adj_map.ensureTotalCapacity(MAX_NODES) catch unreachable;
 
     var line_it = std.mem.splitScalar(u8, data, '\n');
@@ -73,7 +71,6 @@ pub fn part1() u64 {
     }
 
     var memo = std.StringHashMap(u64).init(allocator);
-    defer memo.deinit();
     memo.ensureTotalCapacity(MAX_NODES) catch unreachable;
 
     var ctx = Ctx{ .adj_map = &adj_map, .memo = &memo };
@@ -94,9 +91,8 @@ pub fn part2() u64 {
     // 4 possible visit states, based on whether dac and fft have been visited
     const Memo = std.StringHashMap([4]?u64);
 
-    const buf = std.heap.page_allocator.alloc(u8, 1024 * 1024) catch unreachable;
-    defer std.heap.page_allocator.free(buf);
-    var fba = std.heap.FixedBufferAllocator.init(buf);
+    var buf: [512 * 1024]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buf);
     const allocator = fba.allocator();
 
     const Ctx = struct {
@@ -149,7 +145,6 @@ pub fn part2() u64 {
     };
 
     var adj_map = AdjMap.init(allocator);
-    defer adj_map.deinit();
     adj_map.ensureTotalCapacity(MAX_NODES) catch unreachable;
 
     var line_it = std.mem.splitScalar(u8, data, '\n');
@@ -171,7 +166,6 @@ pub fn part2() u64 {
     }
 
     var memo = Memo.init(allocator);
-    defer memo.deinit();
     memo.ensureTotalCapacity(MAX_NODES) catch unreachable;
 
     var ctx = Ctx{ .adj_map = &adj_map, .memo = &memo };

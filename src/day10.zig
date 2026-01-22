@@ -154,6 +154,10 @@ pub fn part2() u64 {
     const Targets = [MAX_ROWS]i64;
     const Memo = std.AutoHashMap(Targets, u64);
 
+    var buf: [512 * 1024]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buf);
+    const allocator = fba.allocator();
+
     const Solver = struct {
         num_rows: usize,
         num_cols: usize, // total columns in the GF(2) augmented matrix (vars + rhs)
@@ -317,6 +321,7 @@ pub fn part2() u64 {
 
     var lines = std.mem.tokenizeScalar(u8, data, '\n');
     while (lines.next()) |line| {
+        fba.reset();
         var affects: [MAX_ROWS][MAX_COLS]u1 = .{.{0} ** MAX_COLS} ** MAX_ROWS;
         var targets: Targets = .{0} ** MAX_ROWS;
         var num_rows: usize = 0;
@@ -351,8 +356,7 @@ pub fn part2() u64 {
             }
         }
 
-        var memo = Memo.init(std.heap.page_allocator);
-        defer memo.deinit();
+        var memo = Memo.init(allocator);
 
         const solver = Solver{ .num_rows = num_rows, .num_cols = num_cols, .affects = affects };
         result += solver.solve(&memo, targets);

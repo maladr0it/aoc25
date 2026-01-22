@@ -59,9 +59,11 @@ const Pair = struct {
 pub fn part1() usize {
     const CONNECTIONS_COUNT = 1000;
 
-    const allocator = std.heap.page_allocator;
-    var positions = allocator.create([MAX_BOX_COUNT][3]f32) catch unreachable;
-    defer allocator.destroy(positions);
+    var buf: [256 * 1024]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buf);
+    const allocator = fba.allocator();
+
+    const positions = allocator.create([MAX_BOX_COUNT][3]f32) catch unreachable;
 
     var box_count: u16 = 0;
     var lines = std.mem.tokenizeScalar(u8, data, '\n');
@@ -85,7 +87,6 @@ pub fn part1() usize {
             return std.math.order(b.dist_sq, a.dist_sq); // largest are prioritized
         }
     }.compare).init(allocator, {});
-    defer heap.deinit();
     heap.ensureTotalCapacity(CONNECTIONS_COUNT) catch unreachable;
 
     // find the CONNECTIONS_COUNT closest pairs
@@ -116,7 +117,6 @@ pub fn part1() usize {
 
     // connect all pairs into unions
     var union_find = UnionFind.init(allocator, box_count) catch unreachable;
-    defer union_find.deinit(allocator);
     for (heap.items) |pair| {
         _ = union_find.merge(pair.i, pair.j);
     }
@@ -141,9 +141,14 @@ pub fn part1() usize {
 }
 
 pub fn part2() f64 {
-    const allocator = std.heap.page_allocator;
-    var positions = allocator.create([MAX_BOX_COUNT][3]f32) catch unreachable;
-    defer allocator.destroy(positions);
+    const HEAP_BUF_SIZE = 4 * 1024 * 1024;
+    const heap_buf = std.heap.page_allocator.alloc(u8, HEAP_BUF_SIZE) catch unreachable;
+    defer std.heap.page_allocator.free(heap_buf);
+
+    var fba = std.heap.FixedBufferAllocator.init(heap_buf);
+    const allocator = fba.allocator();
+
+    const positions = allocator.create([MAX_BOX_COUNT][3]f32) catch unreachable;
 
     var box_count: u16 = 0;
     var lines = std.mem.tokenizeScalar(u8, data, '\n');

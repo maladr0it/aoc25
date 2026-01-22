@@ -99,6 +99,8 @@ pub fn Grid(comptime T: type) type {
         pub fn floodFill(self: *Self, x: i32, y: i32, target: T, value: T) !void {
             const perimeter = self.width * 2 + self.height * 2; // decent heuristic for the frontier size
             var queue = try std.ArrayList([2]i32).initCapacity(self.allocator, perimeter);
+            // Useful even with a FixedBufferAllocator: it can rewind if this was the last allocation.
+            // Without this, repeated flood-fills would monotonically consume the arena.
             defer queue.deinit(self.allocator);
             try queue.append(self.allocator, .{ x, y });
 

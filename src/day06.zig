@@ -22,7 +22,6 @@ pub fn part1() usize {
     const allocator = fba.allocator();
 
     var grid = util.Grid(u8).initFromData(allocator, data) catch unreachable;
-    defer grid.deinit();
 
     var result: usize = 0;
     var col: i32 = 0;
@@ -71,7 +70,6 @@ pub fn part2() usize {
     const allocator = fba.allocator();
 
     var grid = util.Grid(u8).initFromData(allocator, data) catch unreachable;
-    defer grid.deinit();
 
     var result: usize = 0;
     result = result;

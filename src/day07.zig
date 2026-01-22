@@ -12,7 +12,6 @@ pub fn part1() usize {
     const allocator = fba.allocator();
 
     var grid = util.Grid(u8).initFromData(allocator, data) catch unreachable;
-    defer grid.deinit();
 
     const start = blk: {
         var coord_it = grid.coords();
@@ -91,10 +90,8 @@ pub fn part2() usize {
     const allocator = fba.allocator();
 
     var grid = util.Grid(u8).initFromData(allocator, data) catch unreachable;
-    defer grid.deinit();
 
     var timeline_counts = util.Grid(usize).initFill(allocator, grid.width, grid.height, 0) catch unreachable;
-    defer timeline_counts.deinit();
 
     const start = blk: {
         var coord_it = grid.coords();

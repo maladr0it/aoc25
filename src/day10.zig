@@ -144,222 +144,219 @@ pub fn part1() u64 {
     return result;
 }
 
-pub fn part2() f64 {
-    var result: f64 = 0;
+pub fn part2() u64 {
+    // Odd/even (bifurcation) approach, written in the same style as part 1:
+    // - Build a u1 augmented matrix for the mod-2 system.
+    // - Solve it with Gaussian elimination over GF(2).
+    // - Try all parity (0/1) choices for the free variables.
+    // - Subtract "press once" from the integer target, ensure it's even, halve, recurse.
+    var result: u64 = 0;
+
+    const Targets = [MAX_ROWS]i64;
+    const Memo = std.AutoHashMap(Targets, u64);
+
+    const Solver = struct {
+        num_rows: usize,
+        num_cols: usize, // total columns in the GF(2) augmented matrix (vars + rhs)
+        affects: [MAX_ROWS][MAX_COLS]u1, // affects[row][button] = 1 if button affects row
+
+        fn solve(self: *const @This(), memo: *Memo, targets_in: Targets) u64 {
+            // zero out unused elements so it's a reliable hash key
+            var targets = targets_in;
+            for (self.num_rows..MAX_ROWS) |i| {
+                targets[i] = 0;
+            }
+
+            if (memo.get(targets)) |cached| {
+                return cached;
+            }
+
+            // base case
+            var all_zero = true;
+            for (0..self.num_rows) |i| {
+                if (targets[i] != 0) {
+                    all_zero = false;
+                    break;
+                }
+            }
+            if (all_zero) {
+                memo.put(targets, 0) catch unreachable;
+                return 0;
+            }
+
+            // Build augmented matrix for GF(2)
+            const num_cols = self.num_cols;
+            var gf2_mat: [MAX_ROWS][MAX_COLS]u1 = .{.{0} ** MAX_COLS} ** MAX_ROWS;
+            for (0..self.num_rows) |row| {
+                for (0..num_cols - 1) |btn| {
+                    gf2_mat[row][btn] = self.affects[row][btn];
+                }
+                gf2_mat[row][num_cols - 1] = @intCast(targets[row] & 1);
+            }
+
+            var pivot_row: usize = 0;
+            var is_pivot_col = [_]bool{false} ** MAX_COLS;
+            var pivot_col_for_row: [MAX_ROWS]?usize = .{null} ** MAX_ROWS;
+
+            for (0..num_cols - 1) |pivot_col| {
+                // find and swap
+                var found_row_opt: ?usize = null;
+                for (pivot_row..self.num_rows) |row| {
+                    if (gf2_mat[row][pivot_col] != 0) {
+                        found_row_opt = row;
+                        break;
+                    }
+                }
+
+                const found_row = found_row_opt orelse continue;
+                is_pivot_col[pivot_col] = true;
+                pivot_col_for_row[pivot_row] = pivot_col;
+
+                const tmp = gf2_mat[pivot_row];
+                gf2_mat[pivot_row] = gf2_mat[found_row];
+                gf2_mat[found_row] = tmp;
+
+                // eliminate
+                for (0..self.num_rows) |row| {
+                    if (row != pivot_row and gf2_mat[row][pivot_col] != 0) {
+                        for (0..num_cols) |col| {
+                            gf2_mat[row][col] ^= gf2_mat[pivot_row][col];
+                        }
+                    }
+                }
+
+                pivot_row += 1;
+            }
+
+            // check if no solution (0 = 1)
+            for (0..self.num_rows) |row| {
+                var all_zero_cols = true;
+                for (0..num_cols - 1) |col| {
+                    if (gf2_mat[row][col] != 0) {
+                        all_zero_cols = false;
+                        break;
+                    }
+                }
+                if (all_zero_cols and gf2_mat[row][num_cols - 1] != 0) {
+                    memo.put(targets, std.math.maxInt(u64)) catch unreachable;
+                    return std.math.maxInt(u64);
+                }
+            }
+
+            // find free columns
+            var free_cols: [MAX_COLS]usize = undefined;
+            var num_free: usize = 0;
+            for (0..num_cols - 1) |col| {
+                if (!is_pivot_col[col]) {
+                    free_cols[num_free] = col;
+                    num_free += 1;
+                }
+            }
+
+            var best: u64 = std.math.maxInt(u64);
+            const combos: usize = @as(usize, 1) << @intCast(num_free);
+
+            for (0..combos) |combo| {
+                var odd_presses = [_]u1{0} ** MAX_COLS;
+
+                // set free vars from combo bits
+                for (0..num_free) |i| {
+                    const col = free_cols[i];
+                    odd_presses[col] = @intCast((combo >> @intCast(i)) & 1);
+                }
+
+                // solve pivot vars
+                for (0..self.num_rows) |row| {
+                    const pivot_col = pivot_col_for_row[row] orelse continue;
+                    var val: u1 = gf2_mat[row][num_cols - 1];
+                    for (0..num_cols - 1) |col| {
+                        if (col != pivot_col and gf2_mat[row][col] != 0) {
+                            val ^= odd_presses[col];
+                        }
+                    }
+                    odd_presses[pivot_col] = val;
+                }
+
+                var next_targets: Targets = .{0} ** MAX_ROWS;
+                var ok = true;
+                for (0..self.num_rows) |r| {
+                    var pressed_once_effect: i64 = 0;
+                    for (0..num_cols - 1) |btn| {
+                        if (odd_presses[btn] != 0 and self.affects[r][btn] != 0) {
+                            pressed_once_effect += 1;
+                        }
+                    }
+
+                    const remaining = targets[r] - pressed_once_effect;
+                    if (remaining < 0 or (remaining & 1) != 0) {
+                        ok = false;
+                        break;
+                    }
+                    next_targets[r] = @divExact(remaining, 2);
+                }
+                if (!ok) {
+                    continue;
+                }
+
+                const sub = self.solve(memo, next_targets);
+                if (sub == std.math.maxInt(u64)) {
+                    continue;
+                }
+
+                var cost_this: u64 = 0;
+                for (0..num_cols - 1) |btn| {
+                    cost_this += odd_presses[btn];
+                }
+
+                best = @min(best, cost_this + 2 * sub);
+            }
+
+            memo.put(targets, best) catch unreachable;
+            return best;
+        }
+    };
 
     var lines = std.mem.tokenizeScalar(u8, data, '\n');
     while (lines.next()) |line| {
-        var mat = std.mem.zeroes([MAX_ROWS][MAX_COLS]f64);
+        var affects: [MAX_ROWS][MAX_COLS]u1 = .{.{0} ** MAX_COLS} ** MAX_ROWS;
+        var targets: Targets = .{0} ** MAX_ROWS;
         var num_rows: usize = 0;
-        var num_cols: usize = 0;
+        var num_cols: usize = 0; // counts variables while parsing, then +1 for rhs
 
-        // parse
-        {
-            var i: usize = 0;
-            while (i < line.len) : (i += 1) {
-                switch (line[i]) {
-                    '(' => {
-                        i += 1;
-                        const start = i;
-                        while (line[i] != ')') : (i += 1) {} // get the length
-                        var nums_it = std.mem.splitScalar(u8, line[start..i], ',');
-                        while (nums_it.next()) |num_str| {
-                            const row_num = std.fmt.parseInt(usize, num_str, 10) catch unreachable;
-                            mat[row_num][num_cols] = 1;
-                        }
-                        num_cols += 1;
-                    },
-                    '{' => {
-                        i += 1;
-                        const start = i;
-                        while (line[i] != '}') : (i += 1) {} // get the length
-                        var nums_it = std.mem.splitScalar(u8, line[start..i], ',');
-                        while (nums_it.next()) |num_str| {
-                            const value = std.fmt.parseFloat(f64, num_str) catch unreachable;
-                            mat[num_rows][num_cols] = value;
-                            num_rows += 1;
-                        }
-                        num_cols += 1;
-                    },
-                    else => continue,
-                }
-            }
-        }
-
-        var pivot_row: usize = 0;
-        var is_pivot_col = [_]bool{false} ** MAX_COLS;
-        var pivot_col_for_row: [MAX_ROWS]?usize = .{null} ** MAX_ROWS;
-
-        for (0..num_cols - 1) |pivot_col| { // skip the last col since it holds the output
-            // find and swap
-            var found_row_opt: ?usize = null;
-            for (pivot_row..num_rows) |row| {
-                if (mat[row][pivot_col] != 0) {
-                    found_row_opt = row;
-                    break;
-                }
-            }
-
-            const found_row = found_row_opt orelse continue;
-            is_pivot_col[pivot_col] = true;
-            pivot_col_for_row[pivot_row] = pivot_col;
-
-            const tmp = mat[pivot_row];
-            mat[pivot_row] = mat[found_row];
-            mat[found_row] = tmp;
-
-            // sacle
-            const pivot_val = mat[pivot_row][pivot_col];
-            for (0..num_cols) |col| {
-                mat[pivot_row][col] /= pivot_val;
-            }
-
-            // for all other rows, eliminate the pivot column
-            for (0..num_rows) |row| {
-                if (row != pivot_row and mat[row][pivot_col] != 0) {
-                    const factor = mat[row][pivot_col];
-                    for (0..num_cols) |col| {
-                        mat[row][col] -= factor * mat[pivot_row][col];
+        var i: usize = 0;
+        while (i < line.len) : (i += 1) {
+            switch (line[i]) {
+                '(' => {
+                    i += 1;
+                    const start = i;
+                    while (line[i] != ')') : (i += 1) {}
+                    var nums_it = std.mem.splitScalar(u8, line[start..i], ',');
+                    while (nums_it.next()) |num_str| {
+                        const row_num = std.fmt.parseInt(usize, num_str, 10) catch unreachable;
+                        affects[row_num][num_cols] = 1;
                     }
-                }
-            }
-
-            pivot_row += 1;
-        }
-
-        // find free varaible columns
-        var free_cols: [MAX_COLS]usize = undefined;
-        var num_free_cols: usize = 0;
-        for (0..num_cols - 1) |col| {
-            if (!is_pivot_col[col]) {
-                free_cols[num_free_cols] = col;
-                num_free_cols += 1;
-            }
-        }
-
-        // std.debug.print("free cols: {any}\n", .{num_free_cols});
-        // if (num_free_cols >= 3) {
-        //     // print the mat
-        //     for (0..num_rows) |row| {
-        //         for (0..num_cols) |col| {
-        //             std.debug.print("{d} ", .{mat[row][col]});
-        //         }
-        //         std.debug.print("\n", .{});
-        //     }
-        // }
-
-        // try for every combination of free variable, up to its upper bound
-        //
-
-        // use the total
-
-        // find upper bounds for each free variable
-        // var upper_bounds: [MAX_COLS]f64 = .{std.math.inf(f64)} ** MAX_COLS;
-        // for (0..num_free_cols) |i| {
-        //     const free_col = free_cols[i];
-
-        //     for (0..num_rows) |row| {
-        //         // If this button is the only one pressed, how many times can we press it
-        //         // before we overshoot? That's result / coeff.
-        //         // We take the min across all rows to get the tightest bound.
-        //         const coeff = mat[row][free_col];
-        //         if (coeff > 0) {
-        //             const bound = mat[row][num_cols - 1] / coeff;
-        //             if (bound >= 0) {
-        //                 upper_bounds[i] = @min(bound, upper_bounds[i]);
-        //             }
-        //         }
-        //     }
-
-        //     // assert we got a bound
-        //     if (upper_bounds[i] == std.math.inf(f64)) {
-        //         upper_bounds[i] = 0;
-        //         unreachable;
-        //     }
-        // }
-
-        // find a safe upper-bound for the free variables
-        const upper_bound = blk: {
-            var sum_results: f64 = 0;
-            for (0..num_rows) |row| {
-                sum_results += @abs(mat[row][num_cols - 1]);
-            }
-            break :blk sum_results;
-        };
-
-        // try every combination of free variables
-        var min_presses: f64 = std.math.inf(f64);
-        var free_vals: [MAX_COLS]f64 = .{0} ** MAX_COLS;
-
-        while (true) {
-            // solve for pivot variables. they MUST be integer values
-            var solution = [_]f64{0} ** MAX_COLS;
-
-            for (0..num_free_cols) |i| {
-                const free_col = free_cols[i];
-                solution[free_col] = free_vals[i];
-            }
-
-            var valid = true;
-            for (0..num_rows) |row| {
-                const pivot_col = pivot_col_for_row[row] orelse continue;
-                var pivot_val: f64 = mat[row][num_cols - 1];
-                for (0..num_cols - 1) |col| {
-                    if (col != pivot_col) {
-                        pivot_val -= mat[row][col] * solution[col];
+                    num_cols += 1;
+                },
+                '{' => {
+                    i += 1;
+                    const start = i;
+                    while (line[i] != '}') : (i += 1) {}
+                    var nums_it = std.mem.splitScalar(u8, line[start..i], ',');
+                    while (nums_it.next()) |num_str| {
+                        targets[num_rows] = std.fmt.parseInt(i64, num_str, 10) catch unreachable;
+                        num_rows += 1;
                     }
-                }
-
-                // check val is integer
-                const epsilon = 0.001;
-                if (pivot_val < -epsilon or @abs(pivot_val - @round(pivot_val)) > epsilon) {
-                    valid = false;
-                    break;
-                }
-                solution[pivot_col] = pivot_val;
-            }
-
-            if (valid) {
-                var presses: f64 = 0;
-                for (0..num_cols - 1) |col| {
-                    presses += solution[col];
-                }
-                min_presses = @min(presses, min_presses);
-            }
-
-            // increment to next combination of numbers
-            var carry = true;
-            for (0..num_free_cols) |i| {
-                if (!carry) {
-                    break;
-                }
-
-                free_vals[i] += 1;
-                if (free_vals[i] > upper_bound) {
-                    free_vals[i] = 0;
-                    carry = true;
-                } else {
-                    carry = false;
-                }
-            }
-            if (carry) {
-                break;
+                    num_cols += 1;
+                },
+                else => continue,
             }
         }
 
-        // if (min_presses == std.math.inf(f64)) {
-        //     // print the matrix and line number
-        //     std.debug.print("matrix:\n", .{});
-        //     for (0..num_rows) |row| {
-        //         for (0..num_cols) |col| {
-        //             std.debug.print("{d} ", .{mat[row][col]});
-        //         }
-        //         std.debug.print("\n", .{});
-        //     }
-        //     std.debug.print("line: {s}\n", .{line});
-        // }
+        var memo = Memo.init(std.heap.page_allocator);
+        defer memo.deinit();
 
-        result += min_presses;
+        const solver = Solver{ .num_rows = num_rows, .num_cols = num_cols, .affects = affects };
+        result += solver.solve(&memo, targets);
     }
 
     return result;
